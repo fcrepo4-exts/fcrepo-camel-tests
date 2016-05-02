@@ -44,7 +44,7 @@
     <camel.version>2.17.0</camel.version>
     <hk2.version>2.3.0</hk2.version>
     <httpclient.version>4.5.2</httpclient.version>
-    <karaf.version>4.0.4</karaf.version>
+    <karaf.version>4.0.5</karaf.version>
     <pax-exam.version>4.8.0</pax-exam.version>
     <slf4j.version>1.7.20</slf4j.version>
 
