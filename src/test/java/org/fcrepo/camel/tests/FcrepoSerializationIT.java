@@ -15,6 +15,8 @@
  */
 package org.fcrepo.camel.karaf;
 
+import static java.lang.Thread.sleep;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.ops4j.pax.exam.CoreOptions.maven;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
@@ -28,13 +30,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
 
+import org.apache.camel.CamelContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.ConfigurationManager;
 import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption.LogLevel;
+import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.slf4j.Logger;
@@ -45,23 +48,20 @@ import org.slf4j.Logger;
  */
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
-public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
+public class FcrepoSerializationIT extends AbstractOSGiIT {
 
-    private static Logger LOGGER = getLogger(FcrepoCamelToolboxIT.class);
+    private static Logger LOGGER = getLogger(FcrepoSerializationIT.class);
 
     @Configuration
     public Option[] config() {
         final ConfigurationManager cm = new ConfigurationManager();
         final String fcrepoPort = cm.getProperty("fcrepo.dynamic.test.port");
         final String jmsPort = cm.getProperty("fcrepo.dynamic.jms.port");
-        final String reindexingPort = cm.getProperty("fcrepo.dynamic.reindexing.port");
         final String rmiRegistryPort = cm.getProperty("karaf.rmiRegistry.port");
         final String rmiServerPort = cm.getProperty("karaf.rmiServer.port");
         final String fcrepoBaseUrl = "localhost:" + fcrepoPort + "/fcrepo/rest";
         final String sshPort = cm.getProperty("karaf.ssh.port");
-        final String emptyTopic = "broker:topic:test";
         final String brokerUrl = "tcp://localhost:" + jmsPort;
-        final String triplestoreBaseUrl = "localhost:" + fcrepoPort + "/fuseki/test/update";
 
         return new Option[] {
             karafDistributionConfiguration()
@@ -77,23 +77,14 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
             features(maven().groupId("org.apache.camel.karaf").artifactId("apache-camel")
                         .type("xml").classifier("features").versionAsInProject(), "camel-blueprint"),
             features(maven().groupId("org.fcrepo.camel").artifactId("toolbox-features")
-                        .type("xml").classifier("features").versionAsInProject(), "fcrepo-indexing-triplestore",
-                    "fcrepo-indexing-solr", "fcrepo-reindexing", "fcrepo-serialization",
-                    "fcrepo-fixity", "fcrepo-audit-triplestore", "fcrepo-service-activemq"),
+                        .type("xml").classifier("features").versionAsInProject(),
+                        "fcrepo-service-activemq", "fcrepo-serialization"),
 
-            systemProperty("karaf.reindexing.port").value(reindexingPort),
             systemProperty("fcrepo.port").value(fcrepoPort),
 
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiRegistryPort", rmiRegistryPort),
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiServerPort", rmiServerPort),
             editConfigurationFilePut("etc/org.apache.karaf.shell.cfg", "sshPort", sshPort),
-            editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "triplestore.baseUrl",
-                    triplestoreBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.indexing.solr.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.indexing.solr.cfg", "input.stream", emptyTopic),
-            editConfigurationFilePut("etc/org.fcrepo.camel.reindexing.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.reindexing.cfg", "rest.port", reindexingPort),
             editConfigurationFilePut("etc/org.fcrepo.camel.serialization.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.serialization.cfg", "serialization.descriptions",
                     "data/tmp/descriptions"),
@@ -102,15 +93,43 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
     }
 
     @Test
-    public void testInstallation() throws Exception {
+    public void testInstalled() throws Exception {
         assertTrue(featuresService.isInstalled(featuresService.getFeature("camel-core")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-camel")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-indexing-triplestore")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-indexing-solr")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-reindexing")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-serialization")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-audit-triplestore")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-fixity")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-service-activemq")));
+    }
+
+    @Test(timeout = 60000)
+    public void testSerializationService() throws Exception {
+
+        // Make sure the camel context has started up before modifying Fedora
+        final CamelContext ctx = getOsgiService(CamelContext.class, "(camel.context.name=FcrepoSerialization)", 10000);
+        assertNotNull(ctx);
+
+        final String baseUrl = "http://localhost:" + System.getProperty("fcrepo.port") + "/fcrepo/rest";
+
+        final String url1 = post(baseUrl).replace(baseUrl, "");
+        final String url2 = post(baseUrl).replace(baseUrl, "");
+        final String url3 = post(baseUrl + url1).replace(baseUrl, "");
+        final String url4 = post(baseUrl + url2).replace(baseUrl, "");
+
+        final File file1 = new File("data/tmp/descriptions" + url1 + ".ttl");
+        final File file2 = new File("data/tmp/descriptions" + url2 + ".ttl");
+        final File file3 = new File("data/tmp/descriptions" + url3 + ".ttl");
+        final File file4 = new File("data/tmp/descriptions" + url4 + ".ttl");
+
+        try {
+            while (!file1.exists() || !file2.exists() || !file3.exists() || !file4.exists()) {
+                sleep(1 * 1000);
+            }
+        } catch (final InterruptedException ex) {
+            LOGGER.warn("Interrupted waiting for serialized output: {}", ex.getMessage());
+        }
+
+        assertTrue(file1.exists());
+        assertTrue(file2.exists());
+        assertTrue(file3.exists());
+        assertTrue(file4.exists());
     }
 }

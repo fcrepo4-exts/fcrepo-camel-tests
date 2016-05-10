@@ -15,7 +15,6 @@
  */
 package org.fcrepo.camel.tests;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.junit.Assert.assertTrue;
 import static org.ops4j.pax.exam.CoreOptions.maven;
 import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.configureConsole;
@@ -24,6 +23,7 @@ import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.editConfi
 import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.karafDistributionConfiguration;
 import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.keepRuntimeFolder;
 import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.logLevel;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
 
@@ -37,6 +37,8 @@ import org.ops4j.pax.exam.ConfigurationManager;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption.LogLevel;
+import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
+import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.slf4j.Logger;
 
 /**
@@ -44,6 +46,7 @@ import org.slf4j.Logger;
  * @since May 2, 2016
  */
 @RunWith(PaxExam.class)
+@ExamReactorStrategy(PerClass.class)
 public class FcrepoCamelIT {
 
     private static Logger LOG = getLogger(FcrepoCamelIT.class);
