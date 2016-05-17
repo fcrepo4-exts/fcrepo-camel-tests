@@ -39,7 +39,7 @@
     <!-- dependencies -->
     <fcrepo.version>4.5.1</fcrepo.version>
     <fcrepo-camel.version>4.4.2-SNAPSHOT</fcrepo-camel.version>
-    <fcrepo-camel-toolbox.version>4.5.2-SNAPSHOT</fcrepo-camel-toolbox.version>
+    <fcrepo-camel-toolbox.version>4.5.3-SNAPSHOT</fcrepo-camel-toolbox.version>
 
     <camel.version>2.17.0</camel.version>
     <hk2.version>2.3.0</hk2.version>
