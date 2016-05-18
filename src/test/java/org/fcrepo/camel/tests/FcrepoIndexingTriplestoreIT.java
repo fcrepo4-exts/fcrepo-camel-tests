@@ -15,6 +15,12 @@
  */
 package org.fcrepo.camel.karaf;
 
+import static java.lang.Thread.sleep;
+import static java.net.URLEncoder.encode;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.impl.client.HttpClients.createDefault;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.ops4j.pax.exam.CoreOptions.maven;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
@@ -28,6 +34,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.camel.CamelContext;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -45,9 +56,11 @@ import org.slf4j.Logger;
  */
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
-public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
+public class FcrepoIndexingTriplestoreIT extends AbstractOSGiIT {
 
-    private static Logger LOGGER = getLogger(FcrepoCamelToolboxIT.class);
+    private static Logger LOGGER = getLogger(FcrepoIndexingTriplestoreIT.class);
+
+    private final CloseableHttpClient httpClient = createDefault();
 
     @Configuration
     public Option[] config() {
@@ -59,7 +72,6 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
         final String rmiServerPort = cm.getProperty("karaf.rmiServer.port");
         final String fcrepoBaseUrl = "localhost:" + fcrepoPort + "/fcrepo/rest";
         final String sshPort = cm.getProperty("karaf.ssh.port");
-        final String emptyTopic = "broker:topic:test";
         final String brokerUrl = "tcp://localhost:" + jmsPort;
         final String triplestoreBaseUrl = "localhost:" + fcrepoPort + "/fuseki/test/update";
 
@@ -73,13 +85,12 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
             keepRuntimeFolder(),
             configureConsole().ignoreLocalConsole(),
             features(maven().groupId("org.apache.karaf.features").artifactId("standard")
-                        .versionAsInProject().classifier("features").type("xml"), "scr"),
+                        .type("xml").classifier("features").versionAsInProject(), "scr"),
             features(maven().groupId("org.apache.camel.karaf").artifactId("apache-camel")
-                        .type("xml").classifier("features").versionAsInProject(), "camel-blueprint"),
+                        .type("xml").classifier("features").versionAsInProject(), "camel-blueprint", "camel-jackson"),
             features(maven().groupId("org.fcrepo.camel").artifactId("toolbox-features")
-                        .type("xml").classifier("features").versionAsInProject(), "fcrepo-indexing-triplestore",
-                    "fcrepo-indexing-solr", "fcrepo-reindexing", "fcrepo-serialization",
-                    "fcrepo-fixity", "fcrepo-audit-triplestore", "fcrepo-service-activemq"),
+                        .type("xml").classifier("features").versionAsInProject(),
+                            "fcrepo-service-activemq", "fcrepo-indexing-triplestore"),
 
             systemProperty("karaf.reindexing.port").value(reindexingPort),
             systemProperty("fcrepo.port").value(fcrepoPort),
@@ -87,17 +98,10 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiRegistryPort", rmiRegistryPort),
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiServerPort", rmiServerPort),
             editConfigurationFilePut("etc/org.apache.karaf.shell.cfg", "sshPort", sshPort),
+            editConfigurationFilePut("etc/org.fcrepo.camel.service.activemq.cfg", "jms.brokerUrl", brokerUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "triplestore.baseUrl",
-                    triplestoreBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.indexing.solr.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.indexing.solr.cfg", "input.stream", emptyTopic),
-            editConfigurationFilePut("etc/org.fcrepo.camel.reindexing.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.reindexing.cfg", "rest.port", reindexingPort),
-            editConfigurationFilePut("etc/org.fcrepo.camel.serialization.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.serialization.cfg", "serialization.descriptions",
-                    "data/tmp/descriptions"),
-            editConfigurationFilePut("etc/org.fcrepo.camel.service.activemq.cfg", "jms.brokerUrl", brokerUrl)
+                    triplestoreBaseUrl)
        };
     }
 
@@ -106,11 +110,49 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
         assertTrue(featuresService.isInstalled(featuresService.getFeature("camel-core")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-camel")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-indexing-triplestore")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-indexing-solr")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-reindexing")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-serialization")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-audit-triplestore")));
-        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-fixity")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-service-activemq")));
+    }
+
+    @Test
+    public void testTriplestoreIndexingService() throws Exception {
+
+        // make sure that the camel context has started up.
+        final CamelContext ctx = getOsgiService(CamelContext.class, "(camel.context.name=FcrepoTriplestoreIndexer)",
+                10000);
+        assertNotNull(ctx);
+
+        final String baseUrl = "http://localhost:" + System.getProperty("fcrepo.port") + "/fcrepo/rest";
+        final String fusekiBaseUrl = "http://localhost:" + System.getProperty("fcrepo.port") + "/fuseki/test/query";
+        final String url1 = post(baseUrl);
+        final String url2 = post(baseUrl);
+        final String url3 = post(url1);
+        final String url4 = post(url2);
+
+        try {
+            while (triplestoreCount(fusekiBaseUrl, url1) == 0 ||
+                    triplestoreCount(fusekiBaseUrl, url2) == 0 ||
+                    triplestoreCount(fusekiBaseUrl, url3) == 0 ||
+                    triplestoreCount(fusekiBaseUrl, url4) == 0) {
+                sleep(1 * 1000);
+            }
+        } catch (final InterruptedException ex) {
+            LOGGER.warn("Interrupted, waiting for triplestore synchronization: {}", ex.getMessage());
+        }
+
+        assertTrue(triplestoreCount(fusekiBaseUrl, url1) > 0);
+        assertTrue(triplestoreCount(fusekiBaseUrl, url2) > 0);
+        assertTrue(triplestoreCount(fusekiBaseUrl, url3) > 0);
+        assertTrue(triplestoreCount(fusekiBaseUrl, url4) > 0);
+    }
+
+    private Integer triplestoreCount(final String endpoint, final String subject) throws Exception {
+        final String query = "SELECT (COUNT(*) AS ?n) WHERE { <" + subject + "> ?o ?p . }";
+        final String url = endpoint + "?query=" + encode(query, "UTF-8") + "&output=json";
+        final ObjectMapper mapper = new ObjectMapper();
+        try (final CloseableHttpResponse response = httpClient.execute(new HttpGet(url))) {
+            assertEquals(SC_OK, response.getStatusLine().getStatusCode());
+            return Integer.valueOf(mapper.readTree(response.getEntity().getContent())
+                    .get("results").get("bindings").get(0).get("n").get("value").asText(), 10);
+        }
     }
 }
