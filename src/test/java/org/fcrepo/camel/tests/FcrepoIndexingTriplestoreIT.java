@@ -73,7 +73,7 @@ public class FcrepoIndexingTriplestoreIT extends AbstractOSGiIT {
         final String fcrepoBaseUrl = "localhost:" + fcrepoPort + "/fcrepo/rest";
         final String sshPort = cm.getProperty("karaf.ssh.port");
         final String brokerUrl = "tcp://localhost:" + jmsPort;
-        final String triplestoreBaseUrl = "localhost:" + fcrepoPort + "/fuseki/test/update";
+        final String triplestoreBaseUrl = "http://localhost:" + fcrepoPort + "/fuseki/test/update";
 
         return new Option[] {
             karafDistributionConfiguration()

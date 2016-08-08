@@ -61,7 +61,7 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
         final String sshPort = cm.getProperty("karaf.ssh.port");
         final String emptyTopic = "broker:topic:test";
         final String brokerUrl = "tcp://localhost:" + jmsPort;
-        final String triplestoreBaseUrl = "localhost:" + fcrepoPort + "/fuseki/test/update";
+        final String triplestoreBaseUrl = "http://localhost:" + fcrepoPort + "/fuseki/test/update";
 
         return new Option[] {
             karafDistributionConfiguration()
