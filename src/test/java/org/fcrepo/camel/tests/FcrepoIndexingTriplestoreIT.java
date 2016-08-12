@@ -70,7 +70,7 @@ public class FcrepoIndexingTriplestoreIT extends AbstractOSGiIT {
         final String reindexingPort = cm.getProperty("fcrepo.dynamic.reindexing.port");
         final String rmiRegistryPort = cm.getProperty("karaf.rmiRegistry.port");
         final String rmiServerPort = cm.getProperty("karaf.rmiServer.port");
-        final String fcrepoBaseUrl = "localhost:" + fcrepoPort + "/fcrepo/rest";
+        final String fcrepoBaseUrl = "http://localhost:" + fcrepoPort + "/fcrepo/rest";
         final String sshPort = cm.getProperty("karaf.ssh.port");
         final String brokerUrl = "tcp://localhost:" + jmsPort;
         final String triplestoreBaseUrl = "http://localhost:" + fcrepoPort + "/fuseki/test/update";
@@ -99,7 +99,7 @@ public class FcrepoIndexingTriplestoreIT extends AbstractOSGiIT {
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiServerPort", rmiServerPort),
             editConfigurationFilePut("etc/org.apache.karaf.shell.cfg", "sshPort", sshPort),
             editConfigurationFilePut("etc/org.fcrepo.camel.service.activemq.cfg", "jms.brokerUrl", brokerUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
+            editConfigurationFilePut("etc/org.fcrepo.camel.service.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "triplestore.baseUrl",
                     triplestoreBaseUrl)
        };
@@ -111,6 +111,7 @@ public class FcrepoIndexingTriplestoreIT extends AbstractOSGiIT {
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-camel")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-indexing-triplestore")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-service-activemq")));
+        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-service-camel")));
     }
 
     @Test
