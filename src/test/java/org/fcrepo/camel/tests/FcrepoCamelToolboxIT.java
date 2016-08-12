@@ -77,9 +77,16 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
             features(maven().groupId("org.apache.camel.karaf").artifactId("apache-camel")
                         .type("xml").classifier("features").versionAsInProject(), "camel-blueprint"),
             features(maven().groupId("org.fcrepo.camel").artifactId("toolbox-features")
-                        .type("xml").classifier("features").versionAsInProject(), "fcrepo-indexing-triplestore",
-                    "fcrepo-indexing-solr", "fcrepo-reindexing", "fcrepo-serialization",
-                    "fcrepo-fixity", "fcrepo-audit-triplestore", "fcrepo-service-activemq"),
+                        .type("xml").classifier("features").versionAsInProject(),
+                    "fcrepo-audit-triplestore",
+                    "fcrepo-fixity",
+                    "fcrepo-indexing-solr",
+                    "fcrepo-indexing-triplestore",
+                    "fcrepo-ldpath",
+                    "fcrepo-reindexing",
+                    "fcrepo-serialization",
+                    "fcrepo-service-activemq",
+                    "fcrepo-service-ldcache-file"),
 
             systemProperty("karaf.reindexing.port").value(reindexingPort),
             systemProperty("fcrepo.port").value(fcrepoPort),
@@ -87,13 +94,14 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiRegistryPort", rmiRegistryPort),
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiServerPort", rmiServerPort),
             editConfigurationFilePut("etc/org.apache.karaf.shell.cfg", "sshPort", sshPort),
+            editConfigurationFilePut("etc/org.fcrepo.camel.ldpath.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "triplestore.baseUrl",
                     triplestoreBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.indexing.solr.cfg", "input.stream", emptyTopic),
             editConfigurationFilePut("etc/org.fcrepo.camel.reindexing.cfg", "rest.port", reindexingPort),
             editConfigurationFilePut("etc/org.fcrepo.camel.serialization.cfg", "serialization.descriptions",
                     "data/tmp/descriptions"),
-            editConfigurationFilePut("etc/org.fcrepo.camel.service.cfg", "fcrepo.brokerUrl", fcrepoBaseUrl),
+            editConfigurationFilePut("etc/org.fcrepo.camel.service.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.service.activemq.cfg", "jms.brokerUrl", brokerUrl)
        };
     }
@@ -104,11 +112,13 @@ public class FcrepoCamelToolboxIT extends AbstractOSGiIT {
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-camel")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-indexing-triplestore")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-indexing-solr")));
+        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-ldpath")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-reindexing")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-serialization")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-audit-triplestore")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-fixity")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-service-activemq")));
         assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-service-camel")));
+        assertTrue(featuresService.isInstalled(featuresService.getFeature("fcrepo-service-ldcache-file")));
     }
 }
