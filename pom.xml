@@ -228,6 +228,7 @@
             <portName>fcrepo.dynamic.jms.port</portName>
             <portName>fcrepo.dynamic.stomp.port</portName>
             <portName>fcrepo.dynamic.reindexing.port</portName>
+            <portName>fcrepo.dynamic.ldpath.port</portName>
             <portName>karaf.rmiRegistry.port</portName>
             <portName>karaf.rmiServer.port</portName>
             <portName>karaf.ssh.port</portName>
@@ -255,6 +256,7 @@
           <argLine>-Xmx1024m</argLine>
           <systemPropertyVariables>
             <fcrepo.dynamic.reindexing.port>${fcrepo.dynamic.reindexing.port}</fcrepo.dynamic.reindexing.port>
+            <fcrepo.dynamic.ldpath.port>${fcrepo.dynamic.ldpath.port}</fcrepo.dynamic.ldpath.port>
             <fcrepo.dynamic.test.port>${fcrepo.dynamic.test.port}</fcrepo.dynamic.test.port>
             <fcrepo.dynamic.jms.port>${fcrepo.dynamic.jms.port}</fcrepo.dynamic.jms.port>
             <project.build.outputDirectory>${project.build.outputDirectory}</project.build.outputDirectory>
