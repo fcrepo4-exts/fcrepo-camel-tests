@@ -18,6 +18,7 @@
 package org.fcrepo.camel.karaf;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.UUID.randomUUID;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -71,6 +72,7 @@ public class FcrepoLdpathIT extends AbstractOSGiIT {
         final String rmiServerPort = cm.getProperty("karaf.rmiServer.port");
         final String fcrepoBaseUrl = "http://localhost:" + fcrepoPort + "/fcrepo/rest";
         final String sshPort = cm.getProperty("karaf.ssh.port");
+        final String ldcacheDir = cm.getProperty("project.build.directory") + "/" + randomUUID().toString();
 
         return new Option[] {
             karafDistributionConfiguration()
@@ -97,7 +99,9 @@ public class FcrepoLdpathIT extends AbstractOSGiIT {
             editConfigurationFilePut("etc/org.apache.karaf.shell.cfg", "sshPort", sshPort),
             editConfigurationFilePut("etc/org.fcrepo.camel.ldpath.cfg", "fcrepo.authPort", fcrepoPort),
             editConfigurationFilePut("etc/org.fcrepo.camel.ldpath.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
-            editConfigurationFilePut("etc/org.fcrepo.camel.ldpath.cfg", "rest.port", ldpathPort)
+            editConfigurationFilePut("etc/org.fcrepo.camel.ldpath.cfg", "rest.port", ldpathPort),
+            editConfigurationFilePut("etc/org.fcrepo.camel.ldcache.file.cfg", "ldcache.directory",
+                    ldcacheDir)
 
        };
     }
