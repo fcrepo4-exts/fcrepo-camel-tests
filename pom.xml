@@ -38,7 +38,7 @@
 
     <!-- dependencies -->
     <fcrepo.version>4.6.0</fcrepo.version>
-    <fcrepo-camel.version>4.4.4-SNAPSHOT</fcrepo-camel.version>
+    <fcrepo-camel.version>4.5.0-SNAPSHOT</fcrepo-camel.version>
     <fcrepo-camel-toolbox.version>4.7.0-SNAPSHOT</fcrepo-camel-toolbox.version>
 
     <activemq.version>5.14.0</activemq.version>
@@ -49,6 +49,7 @@
     <karaf.version>4.0.6</karaf.version>
     <pax-exam.version>4.8.0</pax-exam.version>
     <slf4j.version>1.7.20</slf4j.version>
+    <solr.version>4.10.2</solr.version>
     <jena.fuseki.version>2.3.1</jena.fuseki.version>
 
     <!-- plugins -->
@@ -77,6 +78,20 @@
     <dependency>
       <groupId>org.fcrepo.camel</groupId>
       <artifactId>fcrepo-indexing-triplestore</artifactId>
+      <version>${fcrepo-camel-toolbox.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.fcrepo.camel</groupId>
+      <artifactId>fcrepo-service-ldcache-file</artifactId>
+      <version>${fcrepo-camel-toolbox.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.fcrepo.camel</groupId>
+      <artifactId>fcrepo-ldpath</artifactId>
       <version>${fcrepo-camel-toolbox.version}</version>
       <scope>test</scope>
     </dependency>
@@ -228,6 +243,7 @@
             <portName>fcrepo.dynamic.jms.port</portName>
             <portName>fcrepo.dynamic.stomp.port</portName>
             <portName>fcrepo.dynamic.reindexing.port</portName>
+            <portName>fcrepo.dynamic.ldpath-solr.port</portName>
             <portName>fcrepo.dynamic.ldpath.port</portName>
             <portName>karaf.rmiRegistry.port</portName>
             <portName>karaf.rmiServer.port</portName>
@@ -257,9 +273,11 @@
           <systemPropertyVariables>
             <fcrepo.dynamic.reindexing.port>${fcrepo.dynamic.reindexing.port}</fcrepo.dynamic.reindexing.port>
             <fcrepo.dynamic.ldpath.port>${fcrepo.dynamic.ldpath.port}</fcrepo.dynamic.ldpath.port>
+            <fcrepo.dynamic.ldpath-solr.port>${fcrepo.dynamic.ldpath-solr.port}</fcrepo.dynamic.ldpath-solr.port>
             <fcrepo.dynamic.test.port>${fcrepo.dynamic.test.port}</fcrepo.dynamic.test.port>
             <fcrepo.dynamic.jms.port>${fcrepo.dynamic.jms.port}</fcrepo.dynamic.jms.port>
             <project.build.outputDirectory>${project.build.outputDirectory}</project.build.outputDirectory>
+            <project.build.directory>${project.build.directory}</project.build.directory>
             <karaf.ssh.port>${karaf.ssh.port}</karaf.ssh.port>
             <karaf.rmiRegistry.port>${karaf.rmiRegistry.port}</karaf.rmiRegistry.port>
             <karaf.rmiServer.port>${karaf.rmiServer.port}</karaf.rmiServer.port>
@@ -330,6 +348,10 @@
               <value>${fcrepo.dynamic.stomp.port}</value>
             </systemProperty>
             <systemProperty>
+              <name>solr.solr.home</name>
+              <value>${project.build.directory}/test-classes/solr</value>
+            </systemProperty>
+            <systemProperty>
               <name>FUSEKI_BASE</name>
               <value>${project.build.directory}/fuseki_home</value>
             </systemProperty>
@@ -377,6 +399,10 @@
                 <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
                   <war>${project.build.directory}/fcrepo.war</war>
                   <contextPath>/fcrepo</contextPath>
+                </contextHandler>
+                <contextHandler implementation="org.eclipse.jetty.webapp.WebAppContext">
+                  <war>${project.build.directory}/solr.war</war>
+                  <contextPath>/solr</contextPath>
                 </contextHandler>
               </contextHandlers>
             </configuration>
@@ -446,6 +472,14 @@
                     <type>war</type>
                     <outputDirectory>${project.build.directory}</outputDirectory>
                     <destFileName>fuseki.war</destFileName>
+                  </artifactItem>
+                  <artifactItem>
+                    <groupId>org.apache.solr</groupId>
+                    <artifactId>solr</artifactId>
+                    <version>${solr.version}</version>
+                    <type>war</type>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <destFileName>solr.war</destFileName>
                   </artifactItem>
                 </artifactItems>
               </configuration>

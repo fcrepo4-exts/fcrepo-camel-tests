@@ -18,6 +18,7 @@
 package org.fcrepo.camel.karaf;
 
 import static org.apache.http.HttpStatus.SC_CREATED;
+import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.impl.client.HttpClients.createDefault;
 import static org.junit.Assert.assertEquals;
@@ -27,12 +28,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URI;
 
 import javax.inject.Inject;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
@@ -60,14 +65,24 @@ public abstract class AbstractOSGiIT {
     public abstract Option[] config();
 
     protected String get(final String url) {
+        try {
+            final URIBuilder builder = new URIBuilder(url);
+            return get(builder.build());
+        } catch (final URISyntaxException ex) {
+            LOGGER.debug("Invalid URI syntax: {}", ex.getMessage());
+            return "";
+        }
+    }
+
+    protected String get(final URI url) {
         final CloseableHttpClient httpclient = createDefault();
         try {
             final HttpGet req = new HttpGet(url);
             final HttpResponse response = httpclient.execute(req);
             assertEquals(SC_OK, response.getStatusLine().getStatusCode());
             return EntityUtils.toString(response.getEntity(), "UTF-8");
-        } catch (IOException ex) {
-            LOGGER.debug("Unable to extract HttpEntity response into an InputStream: ", ex);
+        } catch (final IOException ex) {
+            LOGGER.debug("Unable to extract HttpEntity response into an InputStream: {}", ex.getMessage());
             return "";
         }
     }
@@ -87,9 +102,19 @@ public abstract class AbstractOSGiIT {
             final HttpResponse response = httpclient.execute(req);
             assertEquals(SC_CREATED, response.getStatusLine().getStatusCode());
             return EntityUtils.toString(response.getEntity(), "UTF-8");
-        } catch (IOException ex) {
-            LOGGER.debug("Unable to extract HttpEntity response into an InputStream: ", ex);
+        } catch (final IOException ex) {
+            LOGGER.debug("Unable to extract HttpEntity response into an InputStream: {}", ex.getMessage());
             return "";
+        }
+    }
+
+    protected void delete(final String url) {
+        final CloseableHttpClient httpclient = createDefault();
+        try {
+            final HttpResponse response = httpclient.execute(new HttpDelete(url));
+            assertEquals(SC_NO_CONTENT, response.getStatusLine().getStatusCode());
+        } catch (final IOException ex) {
+            LOGGER.debug("Unable to delete resource: {}", ex.getMessage());
         }
     }
 
