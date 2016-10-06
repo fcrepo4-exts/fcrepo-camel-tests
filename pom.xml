@@ -45,6 +45,7 @@
     <camel.version>2.17.3</camel.version>
     <hk2.version>2.3.0</hk2.version>
     <httpclient.version>4.5.2</httpclient.version>
+    <httpcore.version>4.4.3</httpcore.version>
     <jackson2.version>2.7.3</jackson2.version>
     <karaf.version>4.0.6</karaf.version>
     <pax-exam.version>4.8.0</pax-exam.version>
@@ -149,7 +150,14 @@
 
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
+      <artifactId>httpcore-osgi</artifactId>
+      <version>${httpcore.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient-osgi</artifactId>
       <version>${httpclient.version}</version>
       <scope>test</scope>
     </dependency>
