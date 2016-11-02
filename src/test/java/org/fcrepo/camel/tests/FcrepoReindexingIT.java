@@ -87,6 +87,8 @@ public class FcrepoReindexingIT extends AbstractOSGiIT {
             configureConsole().ignoreLocalConsole(),
             features(maven().groupId("org.apache.karaf.features").artifactId("standard")
                         .type("xml").classifier("features").versionAsInProject(), "scr"),
+            features(maven().groupId("org.apache.activemq").artifactId("activemq-karaf")
+                        .type("xml").classifier("features").versionAsInProject()),
             features(maven().groupId("org.apache.camel.karaf").artifactId("apache-camel")
                         .type("xml").classifier("features").versionAsInProject(), "camel-blueprint"),
             features(maven().groupId("org.fcrepo.camel").artifactId("toolbox-features")
