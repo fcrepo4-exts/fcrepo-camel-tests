@@ -87,6 +87,8 @@ public class FcrepoReindexingIT extends AbstractOSGiIT {
             configureConsole().ignoreLocalConsole(),
             features(maven().groupId("org.apache.karaf.features").artifactId("standard")
                         .type("xml").classifier("features").versionAsInProject(), "scr"),
+            features(maven().groupId("org.apache.activemq").artifactId("activemq-karaf")
+                        .type("xml").classifier("features").versionAsInProject()),
             features(maven().groupId("org.apache.camel.karaf").artifactId("apache-camel")
                         .type("xml").classifier("features").versionAsInProject(), "camel-blueprint"),
             features(maven().groupId("org.fcrepo.camel").artifactId("toolbox-features")
@@ -100,6 +102,7 @@ public class FcrepoReindexingIT extends AbstractOSGiIT {
             editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiServerPort", rmiServerPort),
             editConfigurationFilePut("etc/org.apache.karaf.shell.cfg", "sshPort", sshPort),
             editConfigurationFilePut("etc/org.fcrepo.camel.reindexing.cfg", "rest.port", reindexingPort),
+            editConfigurationFilePut("etc/org.fcrepo.camel.reindexing.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.service.activemq.cfg", "jms.brokerUrl", brokerUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.service.cfg", "fcrepo.baseUrl", fcrepoBaseUrl),
             editConfigurationFilePut("etc/org.fcrepo.camel.indexing.triplestore.cfg", "triplestore.baseUrl",
