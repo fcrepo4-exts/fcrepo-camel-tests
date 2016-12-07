@@ -137,7 +137,8 @@ public class FcrepoIndexingSolrIT extends AbstractOSGiIT {
 
         // make sure the ldpath service is available.
         try {
-            while (get("http://localhost:" + System.getProperty("ldpath.port") + "/ldpath/").isEmpty()) {
+            while (get("http://localhost:" + System.getProperty("ldpath.port") + "/ldpath?" +
+                        "context=http://localhost:" + System.getProperty("fcrepo.port") + "/fcrepo/rest/").isEmpty()) {
                 sleep(1000);
             }
         } catch (final InterruptedException ex) {
