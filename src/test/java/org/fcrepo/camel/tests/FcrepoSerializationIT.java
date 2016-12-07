@@ -119,10 +119,10 @@ public class FcrepoSerializationIT extends AbstractOSGiIT {
         final String url3 = post(baseUrl + url1).replace(baseUrl, "");
         final String url4 = post(baseUrl + url2).replace(baseUrl, "");
 
-        final File file1 = new File("data/tmp/descriptions" + url1 + ".ttl");
-        final File file2 = new File("data/tmp/descriptions" + url2 + ".ttl");
-        final File file3 = new File("data/tmp/descriptions" + url3 + ".ttl");
-        final File file4 = new File("data/tmp/descriptions" + url4 + ".ttl");
+        final File file1 = new File("data/tmp/descriptions/fcrepo/rest" + url1 + ".ttl");
+        final File file2 = new File("data/tmp/descriptions/fcrepo/rest" + url2 + ".ttl");
+        final File file3 = new File("data/tmp/descriptions/fcrepo/rest" + url3 + ".ttl");
+        final File file4 = new File("data/tmp/descriptions/fcrepo/rest" + url4 + ".ttl");
 
         try {
             while (!file1.exists() || !file2.exists() || !file3.exists() || !file4.exists()) {
