@@ -38,7 +38,7 @@
 
     <!-- dependencies -->
     <fcrepo.version>4.7.0</fcrepo.version>
-    <fcrepo-camel.version>4.5.0-SNAPSHOT</fcrepo-camel.version>
+    <fcrepo-camel.version>4.6.0-SNAPSHOT</fcrepo-camel.version>
     <fcrepo-camel-toolbox.version>4.7.0-SNAPSHOT</fcrepo-camel-toolbox.version>
 
     <activemq.version>5.14.1</activemq.version>
