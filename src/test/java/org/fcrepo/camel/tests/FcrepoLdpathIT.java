@@ -123,7 +123,7 @@ public class FcrepoLdpathIT extends AbstractOSGiIT {
         final String url1 = post(baseUrl, getTurtle("Object 1"), "text/turtle");
         final String url2 = post(baseUrl, getTurtle("Object 2"), "text/turtle");
         final String url3 = post(url1, getTurtle("Object 3"), "text/turtle");
-        final String url4 = post(url2, getTurtle("Object 4"), "text/turtle");
+        final String url4 = post(url2, getTurtle("Object 4"), "text/foo");
 
         final String ldpathUrl = "http://localhost:" + System.getProperty("karaf.ldpath.port") + "/ldpath";
 
@@ -177,15 +177,13 @@ public class FcrepoLdpathIT extends AbstractOSGiIT {
         final List<Map<String, List<String>>> data4 = MAPPER.readValue(response4, List.class);
 
         assertFalse(data4.isEmpty());
-        assertTrue(data4.get(0).containsKey("label"));
+        assertTrue(data4.get(0).containsKey("hasParent"));
         assertTrue(data4.get(0).containsKey("type"));
         assertTrue(data4.get(0).containsKey("id"));
-        assertTrue(data4.get(0).get("id").contains(url4));
-        assertTrue(data4.get(0).get("label").contains("Object 4"));
-        assertTrue(data4.get(0).get("type").contains("http://fedora.info/definitions/v4/repository#Container"));
+        assertTrue(data4.get(0).get("type").contains("http://fedora.info/definitions/v4/repository#Binary"));
         assertTrue(data4.get(0).get("type").contains("http://fedora.info/definitions/v4/repository#Resource"));
-        assertTrue(data4.get(0).get("type").contains("http://pcdm.org/models#Object"));
         assertTrue(data4.get(0).get("hasParent").contains(url2));
+        assertTrue(data4.get(0).get("id").contains(url4));
     }
 
     private InputStream getTurtle(final String title) {
